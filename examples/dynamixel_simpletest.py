@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: MIT
 import time
+
 from dynamixel.devices import XL430_W250_T
 
 m = XL430_W250_T("", 1)

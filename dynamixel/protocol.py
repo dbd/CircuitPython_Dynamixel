@@ -3,10 +3,12 @@
 #
 # SPDX-License-Identifier: MIT
 
-import digitalio
 import time
-import busio
+
 import board
+import busio
+import digitalio
+
 from .utils import Lock
 
 
@@ -107,12 +109,12 @@ class Protocol1(Protocol):
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
-            cls._instance = super(Protocol1, cls).__new__(cls)
+            cls._instance = super().__new__(cls)
         return cls._instance
 
     def __init__(self, *args, **kwargs):
         if not self.initialized:
-            super(Protocol1, self).__init__(*args, **kwargs)
+            super().__init__(*args, **kwargs)
         self.initialized = True
         self.STATUS_ERRORS = [
             None,
@@ -348,12 +350,12 @@ class Protocol2(Protocol):
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
-            cls._instance = super(Protocol2, cls).__new__(cls)
+            cls._instance = super().__new__(cls)
         return cls._instance
 
     def __init__(self, *args, **kwargs):
         if not self.initialized:
-            super(Protocol2, self).__init__(*args, **kwargs)
+            super().__init__(*args, **kwargs)
         self.initialized = True
         self.STATUS_ERRORS = [
             None,

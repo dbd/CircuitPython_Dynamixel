@@ -3,10 +3,11 @@
 #
 # SPDX-License-Identifier: MIT
 
+import asyncio
+
+from dynamixel import utils
 from dynamixel.protocol import Protocol2, Response
 from dynamixel.servo import Servo, paramUnit
-from dynamixel import utils
-import asyncio
 
 
 class operatingMode:
@@ -76,7 +77,7 @@ class XL430_W250_T(Servo):
     OPERATING_MODE = operatingMode
 
     def __init__(self, *args, unit=PARAM_UNIT.UNIT_DEGREE, **kwargs):
-        super(XL430_W250_T, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.unit = unit
         self.protocol: Protocol2 = Protocol2(**kwargs)
         self.resolution = 4096

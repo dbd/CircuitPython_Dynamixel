@@ -3,10 +3,11 @@
 #
 # SPDX-License-Identifier: MIT
 
+import asyncio
+
+from dynamixel import utils
 from dynamixel.protocol import Protocol1, Response
 from dynamixel.servo import Servo, paramUnit
-from dynamixel import utils
-import asyncio
 
 
 class operatingMode:
@@ -56,7 +57,7 @@ class AX12A(Servo):
     OPERATING_MODE = operatingMode
 
     def __init__(self, *args, unit=PARAM_UNIT.UNIT_DEGREE, **kwargs):
-        super(AX12A, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.protocol = Protocol1(**kwargs)
         self.unit = unit
         self.resolution = 1024
