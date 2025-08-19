@@ -23,7 +23,7 @@ CircuitPython library to interface with Dynamixel motors.
 
 Dependencies
 =============
-This is designed for [Adafruit Metro ESP32-S3](https://learn.adafruit.com/adafruit-metro-esp32-s3). A HAT that supports out of the box UART and power with only a single cable is also available [here](https://github.com/dbd/AdafruitMetroESP32-DynamixelHat/tree/main). While not required a circuit is required to handle the TX/RX in half duplex.
+This is designed for `Adafruit Metro ESP32-S3 <https://learn.adafruit.com/adafruit-metro-esp32-s3>`_ . A HAT that supports out of the box UART and power with only a single cable is also available `here <https://github.com/dbd/AdafruitMetroESP32-DynamixelHat/tree/main>`_ . While not required a circuit is required to handle the TX/RX in half duplex.
 
 This driver depends on:
 
@@ -52,7 +52,7 @@ following command to install:
 
 .. code-block:: shell
 
-    circup install dynamixel
+    circup install dxl
 
 Or the following command to update an existing version:
 
