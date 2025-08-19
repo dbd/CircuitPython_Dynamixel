@@ -131,9 +131,7 @@ class XL430_W250_T(Servo):
         return self.writeControlTableItem(self.CONTROL_TABLE.LED, 0)
 
     def setOperationMode(self, operatingMode):
-        return self.writeControlTableItem(
-            self.CONTROL_TABLE.OPERATING_MODE, operatingMode
-        )
+        return self.writeControlTableItem(self.CONTROL_TABLE.OPERATING_MODE, operatingMode)
 
     def convertToNegative(self, value, length):
         if value < 0:
@@ -157,9 +155,7 @@ class XL430_W250_T(Servo):
         res = self.readControlTableItem(self.CONTROL_TABLE.PRESENT_POSITION)
         data = None
         if res.ok:
-            data = self.convertFromNegative(
-                res.data, self.CONTROL_TABLE.GOAL_POSITION[1]
-            )
+            data = self.convertFromNegative(res.data, self.CONTROL_TABLE.GOAL_POSITION[1])
             data = self.convertRaw(data, unit)
         return Response(data, res.err)
 

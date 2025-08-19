@@ -163,20 +163,12 @@ class Protocol1(Protocol):
                         headers.append(i)
                 if not self.uart.in_waiting:
                     packets = [
-                        packet[
-                            headers[i] : (
-                                headers[i + 1] if i + 1 < len(headers) else None
-                            )
-                        ]
+                        packet[headers[i] : (headers[i + 1] if i + 1 < len(headers) else None)]
                         for i in range(len(headers))
                     ]
-                    return Response(
-                        packets, [validationErrors(packet) for packet in packets]
-                    )
+                    return Response(packets, [validationErrors(packet) for packet in packets])
             else:
-                toRead = 11 - (
-                    length + 1
-                )  # plus one because length include the instruction
+                toRead = 11 - (length + 1)  # plus one because length include the instruction
                 t = self.uart.read(toRead)
                 if t is None:
                     return Response(t, Error.ERR_RX_FAILED_TO_RX_ENTIRE_PACKET)
@@ -260,9 +252,7 @@ class Protocol1(Protocol):
 
     def regWrite(self, ID: int, addr: int, length: int, data: int) -> Response:
         dataLowHigh = list(data.to_bytes(length, "little"))
-        pl = self.packetLength(
-            [self.INSTR_REG_WRITE, addr] + dataLowHigh + [0x00, 0x00]
-        )
+        pl = self.packetLength([self.INSTR_REG_WRITE, addr] + dataLowHigh + [0x00, 0x00])
         packet = [ID] + pl + [self.INSTR_REG_WRITE] + dataLowHigh
         return self.send(packet)
 
@@ -298,12 +288,8 @@ class Protocol1(Protocol):
 
     def syncRead(self, addr: int, length: int, ids: list) -> Response:
         lengthLowHigh = list(length.to_bytes(2, "little"))
-        pl = self.packetLength(
-            [self.INSTR_SYNC_READ, addr] + lengthLowHigh + ids + [0x00, 0x00]
-        )
-        packet = (
-            [self.BROADCAST] + pl + [self.INSTR_SYNC_READ, addr] + lengthLowHigh + ids
-        )
+        pl = self.packetLength([self.INSTR_SYNC_READ, addr] + lengthLowHigh + ids + [0x00, 0x00])
+        packet = [self.BROADCAST] + pl + [self.INSTR_SYNC_READ, addr] + lengthLowHigh + ids
         return self.send(packet)
 
     def syncWrite(self, addr: int, length: int, values: list) -> Response:
@@ -316,12 +302,8 @@ class Protocol1(Protocol):
             p.append(ID)
             p.extend(list(value.to_bytes(length, "little")))
         lengthLowHigh = list(length.to_bytes(2, "little"))
-        pl = self.packetLength(
-            [self.INSTR_SYNC_WRITE, addr] + lengthLowHigh + p + [0x00, 0x00]
-        )
-        packet = (
-            [self.BROADCAST] + pl + [self.INSTR_SYNC_WRITE, addr] + lengthLowHigh + p
-        )
+        pl = self.packetLength([self.INSTR_SYNC_WRITE, addr] + lengthLowHigh + p + [0x00, 0x00])
+        packet = [self.BROADCAST] + pl + [self.INSTR_SYNC_WRITE, addr] + lengthLowHigh + p
         return self.send(packet)
 
 
@@ -390,14 +372,10 @@ class Protocol2(Protocol):
         polynomial = 0x8005  # CRC-16-ANSI (x^16 + x^15 + x^2 + 1)
 
         for i in range(256):
-            crc = (
-                i << 8
-            )  # Start with the value of the byte shifted to the left by 8 bits
+            crc = i << 8  # Start with the value of the byte shifted to the left by 8 bits
             for j in range(8):  # For each bit in the byte
                 if crc & 0x8000:  # If the highest bit is set
-                    crc = (
-                        crc << 1
-                    ) ^ polynomial  # Shift left and XOR with the polynomial
+                    crc = (crc << 1) ^ polynomial  # Shift left and XOR with the polynomial
                 else:
                     crc <<= 1  # Just shift left
                 crc &= 0xFFFF  # Ensure we keep it within 16 bits
@@ -497,20 +475,12 @@ class Protocol2(Protocol):
                         headers.append(i)
                 if not self.uart.in_waiting:
                     packets = [
-                        packet[
-                            headers[i] : (
-                                headers[i + 1] if i + 1 < len(headers) else None
-                            )
-                        ]
+                        packet[headers[i] : (headers[i + 1] if i + 1 < len(headers) else None)]
                         for i in range(len(headers))
                     ]
-                    return Response(
-                        packets, [validationErrors(packet) for packet in packets]
-                    )
+                    return Response(packets, [validationErrors(packet) for packet in packets])
             else:
-                toRead = 11 - (
-                    length + 1
-                )  # plus one because length include the instruction
+                toRead = 11 - (length + 1)  # plus one because length include the instruction
                 t = self.uart.read(toRead)
                 if t is None:
                     return Response(t, Error.ERR_RX_FAILED_TO_RX_ENTIRE_PACKET)
@@ -540,9 +510,7 @@ class Protocol2(Protocol):
     def read(self, ID: int, addr: int, length: int) -> Response:
         addrLowHigh = list(addr.to_bytes(2, "little"))
         lengthLowHigh = list(length.to_bytes(2, "little"))
-        pl = self.packetLength(
-            [self.INSTR_READ] + addrLowHigh + lengthLowHigh + [0x00, 0x00]
-        )
+        pl = self.packetLength([self.INSTR_READ] + addrLowHigh + lengthLowHigh + [0x00, 0x00])
         packet = [ID] + pl + [self.INSTR_READ] + addrLowHigh + lengthLowHigh
         res = self.send(packet)
         if not res.ok:
@@ -556,18 +524,14 @@ class Protocol2(Protocol):
             dataLowHigh = list(data.to_bytes(length, "little"))
         else:
             dataLowHigh = data
-        pl = self.packetLength(
-            [self.INSTR_WRITE] + addrLowHigh + dataLowHigh + [0x00, 0x00]
-        )
+        pl = self.packetLength([self.INSTR_WRITE] + addrLowHigh + dataLowHigh + [0x00, 0x00])
         packet = [ID] + pl + [self.INSTR_WRITE] + addrLowHigh + dataLowHigh
         return self.send(packet)
 
     def regWrite(self, ID: int, addr: int, length: int, data: int) -> Response:
         addrLowHigh = list(addr.to_bytes(2, "little"))
         dataLowHigh = list(data.to_bytes(length, "little"))
-        pl = self.packetLength(
-            [self.INSTR_REG_WRITE] + addrLowHigh + dataLowHigh + [0x00, 0x00]
-        )
+        pl = self.packetLength([self.INSTR_REG_WRITE] + addrLowHigh + dataLowHigh + [0x00, 0x00])
         packet = [ID] + pl + [self.INSTR_REG_WRITE] + addrLowHigh + dataLowHigh
         return self.send(packet)
 
@@ -615,9 +579,7 @@ class Protocol2(Protocol):
         packet = [ID] + pl + [self.INSTR_CLEAR, p] + d
         return self.send(packet)
 
-    def controlTableBackup(
-        self, ID: int, store: bool = False, restore: bool = False
-    ) -> Response:
+    def controlTableBackup(self, ID: int, store: bool = False, restore: bool = False) -> Response:
         p = 0x00
         if store:
             p = [0x01, 0x43, 0x54, 0x52, 0x4C]
@@ -635,14 +597,7 @@ class Protocol2(Protocol):
         pl = self.packetLength(
             [self.INSTR_SYNC_READ] + addrLowHigh + lengthLowHigh + ids + [0x00, 0x00]
         )
-        packet = (
-            [self.BROADCAST]
-            + pl
-            + [self.INSTR_SYNC_READ]
-            + addrLowHigh
-            + lengthLowHigh
-            + ids
-        )
+        packet = [self.BROADCAST] + pl + [self.INSTR_SYNC_READ] + addrLowHigh + lengthLowHigh + ids
         return self.send(packet)
 
     def syncWrite(self, addr: int, length: int, values: list) -> Response:
@@ -659,33 +614,17 @@ class Protocol2(Protocol):
         pl = self.packetLength(
             [self.INSTR_SYNC_WRITE] + addrLowHigh + lengthLowHigh + p + [0x00, 0x00]
         )
-        packet = (
-            [self.BROADCAST]
-            + pl
-            + [self.INSTR_SYNC_WRITE]
-            + addrLowHigh
-            + lengthLowHigh
-            + p
-        )
+        packet = [self.BROADCAST] + pl + [self.INSTR_SYNC_WRITE] + addrLowHigh + lengthLowHigh + p
         return self.send(packet)
 
     def fastSyncRead(self, addr: int, length: int, ids: list) -> Response:
         addrLowHigh = list(addr.to_bytes(2, "little"))
         lengthLowHigh = list(length.to_bytes(2, "little"))
         pl = self.packetLength(
-            [self.INSTR_FAST_SYNC_READ]
-            + addrLowHigh
-            + lengthLowHigh
-            + ids
-            + [0x00, 0x00]
+            [self.INSTR_FAST_SYNC_READ] + addrLowHigh + lengthLowHigh + ids + [0x00, 0x00]
         )
         packet = (
-            [self.BROADCAST]
-            + pl
-            + [self.INSTR_FAST_SYNC_READ]
-            + addrLowHigh
-            + lengthLowHigh
-            + ids
+            [self.BROADCAST] + pl + [self.INSTR_FAST_SYNC_READ] + addrLowHigh + lengthLowHigh + ids
         )
         return self.send(packet)
 

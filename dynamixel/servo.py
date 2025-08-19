@@ -27,15 +27,11 @@ class Servo:
         _ = kwargs
 
     def convertUnits(self, raw: int, unit: int) -> int:
-        unitMap = {
-            paramUnit.UNIT_DEGREE: lambda raw: int((raw / 360) * self.resolution)
-        }
+        unitMap = {paramUnit.UNIT_DEGREE: lambda raw: int((raw / 360) * self.resolution)}
         return unitMap.get(unit, lambda raw: raw)(raw)
 
     def convertRaw(self, raw: int, unit: int) -> int:
-        unitMap = {
-            paramUnit.UNIT_DEGREE: lambda raw: int((raw / self.resolution) * 360)
-        }
+        unitMap = {paramUnit.UNIT_DEGREE: lambda raw: int((raw / self.resolution) * 360)}
         return unitMap.get(unit, lambda raw: raw)(raw)
 
     def read(self, addr: int, length: int) -> Response:

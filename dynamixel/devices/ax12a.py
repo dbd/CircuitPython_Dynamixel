@@ -106,9 +106,7 @@ class AX12A(Servo):
 
     def setOperationMode(self, operatingMode):
         self.writeControlTableItem(self.CONTROL_TABLE.CW_ANGLE_LIMIT, operatingMode[0])
-        return self.writeControlTableItem(
-            self.CONTROL_TABLE.CCW_ANGLE_LIMIT, operatingMode[1]
-        )
+        return self.writeControlTableItem(self.CONTROL_TABLE.CCW_ANGLE_LIMIT, operatingMode[1])
 
     def convertToNegative(self, value, length):
         if value < 0:
@@ -132,9 +130,7 @@ class AX12A(Servo):
         res = self.readControlTableItem(self.CONTROL_TABLE.PRESENT_POSITION)
         data = None
         if res.ok:
-            data = self.convertFromNegative(
-                res.data, self.CONTROL_TABLE.GOAL_POSITION[1]
-            )
+            data = self.convertFromNegative(res.data, self.CONTROL_TABLE.GOAL_POSITION[1])
             data = self.convertRaw(data, unit)
         return Response(data, res.err)
 
