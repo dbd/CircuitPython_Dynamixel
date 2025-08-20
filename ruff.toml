@@ -46,9 +46,8 @@ extend-select = [
   "PLR0203",  # no-staticmethod-decorator
   "UP004",  # useless-object-inheritance
   "PLR0206",  # property-with-parameters
-  "PLR0904",  # too-many-public-methods
-  "PLR0911",  # too-many-return-statements
-  "PLR0912",  # too-many-branches
+
+
   "PLR0913",  # too-many-arguments
   "PLR0914",  # too-many-locals
   "PLR0915",  # too-many-statements
@@ -92,6 +91,11 @@ ignore = [
     "PLR2004", # magic-value-comparison
     "UP030", # format literals
     "PLW1514",  # unspecified-encoding
+    # This is what happens when you make a wrapper for
+    # another protocol
+    "PLR0904",  # too-many-public-methods
+    "PLR0911",  # too-many-return-statements
+    "PLR0912",  # too-many-branches
 
 ]
 

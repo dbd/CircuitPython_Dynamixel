@@ -66,7 +66,8 @@ class Protocol:
         self.tx_enable.direction = digitalio.Direction.OUTPUT
         self.tx_enable.value = True
 
-    def _packetLength(self, packet: list, size: int) -> list:
+    @classmethod
+    def _packetLength(cls, packet: list, size: int) -> list:
         # Length is the instruction + params + CRC
         # simplified to num params + 3
         pl = len(packet)
@@ -127,16 +128,18 @@ class Protocol1(Protocol):
             Error.ERR_INPUT_VOLTAGE_ERROR,
         ]
 
-    def receive(self) -> Response:
-        def validationErrors(packet: list):
-            crc = self.checksum(packet[:-1])
-            if crc != packet[-1]:
-                return Error.ERR_RX_CRC_MISMATCH
-            err = packet[4]
-            if err:
-                return [self.STATUS_ERRORS[i] for i, c in enumerate(reversed(str(bin(err))[2:])) if int(c)]
-            return Error.OK
+    def validationErrors(self, packet: list):
+        crc = self.checksum(packet[:-1])
+        if crc != packet[-1]:
+            return Error.ERR_RX_CRC_MISMATCH
+        err = packet[4]
+        if err:
+            return [
+                self.STATUS_ERRORS[i] for i, c in enumerate(reversed(str(bin(err))[2:])) if int(c)
+            ]
+        return Error.OK
 
+    def receive(self) -> Response:
         length = 0
         # read in HEADER HEADER HEADER RESERVED ID LENGTH_LOW LENGTH_HIGH 55 ERR CRC_LOW CRC_HIGH
         packet = self.uart.read(self.uart.in_waiting)
@@ -155,7 +158,7 @@ class Protocol1(Protocol):
         if packet[:2] == self.HEADERS:
             length = packet[3]
             if length + 4 == len(packet) and not self.uart.in_waiting:
-                return Response(packet, validationErrors(packet))
+                return Response(packet, self.validationErrors(packet))
             if length < len(packet):
                 headers = []
                 for i in range(len(packet)):
@@ -167,7 +170,7 @@ class Protocol1(Protocol):
                         packet[headers[i] : (headers[i + 1] if i + 1 < len(headers) else None)]
                         for i in range(len(headers))
                     ]
-                    return Response(packets, [validationErrors(packet) for packet in packets])
+                    return Response(packets, [self.validationErrors(packet) for packet in packets])
             else:
                 toRead = 11 - (length + 1)  # plus one because length include the instruction
                 t = self.uart.read(toRead)
@@ -177,7 +180,7 @@ class Protocol1(Protocol):
                 if self.uart.in_waiting:
                     t = self.uart.read(self.uart.in_waiting)
                 packet += list(t)
-                return Response(packet, validationErrors(packet))
+                return Response(packet, self.validationErrors(packet))
         for i in range(len(packet)):
             j = packet[i : i + 4]
             if len(j) == 4 and j[:3] == self.HEADERS and j[3] != 0xFD:
@@ -187,11 +190,12 @@ class Protocol1(Protocol):
                 return Response(packet, Error.ERR_RX_NO_RESPONSE)
             packet = list(self.uart.read(self.uart.in_waiting))
         if packet:
-            return Response(packet, validationErrors(packet))
+            return Response(packet, self.validationErrors(packet))
 
         return Response(None, Error.ERR_RX_ERROR)
 
-    def checksum(self, packet: list) -> int:
+    @classmethod
+    def checksum(cls, packet: list) -> int:
         return ~sum(packet[2:]) & 0xFF
 
     def addChecksum(self, packet: list) -> list:
@@ -367,7 +371,8 @@ class Protocol2(Protocol):
             Error.ERR_ACCESS_ERROR,
         ]
 
-    def checksum(self, packet: list) -> list:
+    @classmethod
+    def checksum(cls, packet: list) -> list:
         crc_accum = 0
         crc_table = []
         polynomial = 0x8005  # CRC-16-ANSI (x^16 + x^15 + x^2 + 1)
@@ -437,16 +442,18 @@ class Protocol2(Protocol):
             self.uart.reset_input_buffer()
         return res
 
-    def receive(self) -> Response:
-        def validationErrors(packet: list):
-            crc = self.checksum(packet[:-2] + [0x00, 0x00])
-            if crc != packet[-2:]:
-                return Error.ERR_RX_CRC_MISMATCH
-            err = packet[8]
-            if err:
-                return [self.STATUS_ERRORS[i] for i, c in enumerate(reversed(str(bin(err))[2:])) if int(c)]
-            return Error.OK
+    def validationErrors(self, packet: list):
+        crc = self.checksum(packet[:-2] + [0x00, 0x00])
+        if crc != packet[-2:]:
+            return Error.ERR_RX_CRC_MISMATCH
+        err = packet[8]
+        if err:
+            return [
+                self.STATUS_ERRORS[i] for i, c in enumerate(reversed(str(bin(err))[2:])) if int(c)
+            ]
+        return Error.OK
 
+    def receive(self) -> Response:
         length = 0
         # read in HEADER HEADER HEADER RESERVED ID LENGTH_LOW LENGTH_HIGH 55 ERR CRC_LOW CRC_HIGH
         packet = self.uart.read(self.uart.in_waiting)
@@ -466,7 +473,7 @@ class Protocol2(Protocol):
             low, high = packet[5 : 6 + 1]
             length = int.from_bytes(bytes([low, high]), "little")
             if length + 7 == len(packet) and not self.uart.in_waiting:
-                return Response(packet, validationErrors(packet))
+                return Response(packet, self.validationErrors(packet))
             if length < len(packet):
                 headers = []
                 for i in range(len(packet)):
@@ -478,7 +485,7 @@ class Protocol2(Protocol):
                         packet[headers[i] : (headers[i + 1] if i + 1 < len(headers) else None)]
                         for i in range(len(headers))
                     ]
-                    return Response(packets, [validationErrors(packet) for packet in packets])
+                    return Response(packets, [self.validationErrors(packet) for packet in packets])
             else:
                 toRead = 11 - (length + 1)  # plus one because length include the instruction
                 t = self.uart.read(toRead)
@@ -488,7 +495,7 @@ class Protocol2(Protocol):
                 if self.uart.in_waiting:
                     t = self.uart.read(self.uart.in_waiting)
                 packet += list(t)
-                return Response(packet, validationErrors(packet))
+                return Response(packet, self.validationErrors(packet))
         for i in range(len(packet)):
             j = packet[i : i + 4]
             if len(j) == 4 and j[:3] == self.HEADERS and j[3] != 0xFD:
@@ -498,7 +505,7 @@ class Protocol2(Protocol):
                 return Response(packet, Error.ERR_RX_NO_RESPONSE)
             packet = list(self.uart.read(self.uart.in_waiting))
         if packet:
-            return Response(packet, validationErrors(packet))
+            return Response(packet, self.validationErrors(packet))
 
         return Response(None, Error.ERR_RX_ERROR)
 
