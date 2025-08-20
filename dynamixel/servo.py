@@ -8,15 +8,26 @@ from collections import namedtuple
 from dynamixel.protocol import Protocol1, Protocol2, Response
 
 
-class paramUnit:
-    UNIT_RAW = 0
-    UNIT_PERCENT = 1
-    UNIT_RPM = 2
-    UNIT_DEGREE = 3
-    UNIT_MILLI_AMPERE = 4
+class units:
+    RAW = 0
+    PERCENT = 1
+    RPM = 2
+    DEGREE = 3
+    MILLI_AMPERE = 4
+    VOLTAGE = 5
+    BAUD = 6
 
 
-ControlTableItem = namedtuple("ControlTableItem", ["address", "length", "writable"])
+class ControlTableItem:
+    def __init__(self, address, length, writable, limits=None, defaultUnit=units.RAW):
+        self.address = address
+        self.length = length
+        self.writable = writable
+        self.limits = limits
+        self.defaultUnit = defaultUnit
+
+    def __iter__(self):
+        yield from [self.address, self.length, self.writable, self.limits, self.defaultUnit]
 
 
 class controlTable:
@@ -30,20 +41,38 @@ class controlTable:
 
 class Servo:
     CONTROL_TABLE = controlTable
+    UNITS = units
 
     def __init__(self, name: str, servo_id: int, **kwargs):
         self.name = name
         self._id = servo_id
         self.protocol: Protocol1 | Protocol2 = None
         self.resolution = None
+        self.bauds = {}
+        self._rpm = 1
         _ = kwargs
 
     def convertUnits(self, raw: int, unit: int) -> int:
-        unitMap = {paramUnit.UNIT_DEGREE: lambda raw: int((raw / 360) * self.resolution)}
+        if unit == units.BAUD:
+            inverseBauds = {v: k for k, v in self.bauds.items()}
+        else:
+            inverseBauds = {}
+
+        unitMap = {
+            units.DEGREE: lambda raw: int((raw / 360) * self.resolution),
+            units.VOLTAGE: lambda raw: int(raw * 10),
+            units.BAUD: lambda raw: inverseBauds[raw],
+            units.RPM: lambda raw: self._rpm * raw,
+        }
         return unitMap.get(unit, lambda raw: raw)(raw)
 
     def convertRaw(self, raw: int, unit: int) -> int:
-        unitMap = {paramUnit.UNIT_DEGREE: lambda raw: int((raw / self.resolution) * 360)}
+        unitMap = {
+            units.DEGREE: lambda raw: int((raw / self.resolution) * 360),
+            units.VOLTAGE: lambda raw: raw / 10,
+            units.BAUD: lambda raw: self.bauds[raw],
+            units.RPM: lambda raw: raw / self._rpm,
+        }
         return unitMap.get(unit, lambda raw: raw)(raw)
 
     def read(self, address: int, length: int) -> Response:
@@ -74,3 +103,13 @@ class Servo:
     def ping(self):
         res = self.protocol.ping(self.id)
         return res
+
+    @classmethod
+    def convertToNegative(cls, value, length):
+        _ = length
+        return value
+
+    @classmethod
+    def convertFromNegative(cls, value, length):
+        _ = length
+        return value

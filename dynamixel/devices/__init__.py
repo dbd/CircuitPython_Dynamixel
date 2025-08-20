@@ -10,16 +10,37 @@ from dynamixel.servo import ControlTableItem
 imports = [("xl430w250t", "XL430_W250_T"), ("ax12a", "AX12A")]
 
 
-def make_getter(addr, size):
-    def getter(self, _addr=addr, _size=size):
-        return self.readControlTableItem(_addr, _size)
+def make_getter(ct):
+    addr, length, _, _, defaultUnit = ct
+
+    def getter(self, _addr=addr, _length=length, unit=None):
+        data = None
+        res = self.readControlTableItem(_addr, _length)
+        unit = unit or self.unit or defaultUnit
+        if res.ok:
+            data = self.convertFromNegative(res.data, _length)
+            data = self.convertRaw(data, unit)
+            res.data = data
+        return res
 
     return getter
 
 
-def make_setter(addr, size):
-    def setter(self, data, _addr=addr, _size=size):
-        return self.writeControlTableItem(_addr, _size, data)
+def make_setter(ct):
+    addr, length, _, limits, defaultUnit = ct
+
+    def setter(self, data, _addr=addr, _length=length, _limits=limits, unit=None):
+        unit = unit or self.unit or defaultUnit
+        data = self.convertUnits(data, unit)
+        if data < 0:
+            data = self.convertToNegative(data)
+        if isinstance(_limits, list):
+            assert data in _limits, f"{data} should be one of {_limits}"
+        if isinstance(limits, tuple):
+            assert _limits[0] <= data <= _limits[1], (
+                f"{data} should be within {_limits[0]} and {_limits[1]}"
+            )
+        return self.writeControlTableItem(_addr, _length, data)
 
     return setter
 
@@ -34,7 +55,7 @@ for filename, classname in imports:
         baseName = "".join([word[0] + word[1:].lower() for word in key.split("_")])
         if ct.writable:
             methodName = f"set{baseName}"
-            setattr(cls, methodName, make_setter(*ct[:2]))
+            setattr(cls, methodName, make_setter(ct))
 
         methodName = f"get{baseName}"
-        setattr(cls, methodName, make_getter(*ct[:2]))
+        setattr(cls, methodName, make_getter(ct))
