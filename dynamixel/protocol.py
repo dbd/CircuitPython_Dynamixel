@@ -38,7 +38,7 @@ class Error:
 class Response:
     def __init__(self, data, err):
         self.data = data
-        self.err = err
+        self.err: list = err
 
     @property
     def ok(self):
@@ -134,8 +134,7 @@ class Protocol1(Protocol):
                 return Error.ERR_RX_CRC_MISMATCH
             err = packet[4]
             if err:
-                bit = "".join(list(bin(err))[::-1][:-2]).index("1")
-                return self.STATUS_ERRORS[bit]
+                return [self.STATUS_ERRORS[i] for i, c in enumerate(reversed(str(bin(err))[2:])) if int(c)]
             return Error.OK
 
         length = 0
@@ -445,8 +444,7 @@ class Protocol2(Protocol):
                 return Error.ERR_RX_CRC_MISMATCH
             err = packet[8]
             if err:
-                bit = "".join(list(bin(err))[::-1][:-2]).index("1")
-                return self.STATUS_ERRORS[bit]
+                return [self.STATUS_ERRORS[i] for i, c in enumerate(reversed(str(bin(err))[2:])) if int(c)]
             return Error.OK
 
         length = 0
